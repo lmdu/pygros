@@ -1,0 +1,6 @@
+
+build/lib.linux-x86_64-3.8/pygrange.cpython-38-x86_64-linux-gnu.so
+build/temp.linux-x86_64-3.8/src/cgranges.o
+build/temp.linux-x86_64-3.8/src/pygranges.o
+build/temp.linux-x86_64-3.8/src/ranges.o
+pygrange.cpython-38-x86_64-linux-gnu.so
