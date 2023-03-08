@@ -20,7 +20,7 @@ with open(os.path.join('src', 'version.h')) as fh:
 cgrs_ver = '0.1'
 cgrs_dir = os.path.join(root_dir, "cgranges-{}".format(cgrs_ver))
 cgrs_file = "{}.zip".format(cgrs_dir)
-cgrs_url = "https://github.com/lh3/cgranges/archive/refs/tags/{}.zip".format(cgrs_ver)
+cgrs_url = "https://github.com/lh3/cgranges/archive/refs/tags/v{}.zip".format(cgrs_ver)
 
 if not os.path.exists(cgrs_dir):
 	if not os.path.isfile(cgrs_file):
