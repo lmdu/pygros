@@ -1,7 +1,6 @@
-#define PY_SSIZE_T_CLEAN
-#ifndef PYGRANGES_RANGES_H
-#define PYGRANGES_RANGES_H
-#include "Python.h"
+#ifndef PYGROS_RANGES_H
+#define PYGROS_RANGES_H
+#include <Python.h>
 #include "cgranges.h"
 
 typedef struct {
@@ -11,10 +10,10 @@ typedef struct {
 	cgranges_t *ranges;
 
 	//index has been build
-	int indexed;
+	//int indexed;
 
-} pygrange_Ranges;
+} pygros_Ranges;
 
-extern PyTypeObject pygrange_RangesType;
+extern PyTypeObject pygros_RangesType;
 
 #endif

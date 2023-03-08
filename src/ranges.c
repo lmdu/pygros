@@ -1,212 +1,228 @@
 #define PY_SSIZE_T_CLEAN
+#include <Python.h>
 #include "ranges.h"
 
-static PyObject *pygrange_ranges_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
-	pygrange_Ranges *obj = (pygrange_Ranges *)type->tp_alloc(type, 0);
+static PyObject *pygros_ranges_new(PyTypeObject *type, PyObject *args, PyObject *kwargs) {
+	pygros_Ranges *obj = (pygros_Ranges *)type->tp_alloc(type, 0);
+
+	Py_ssize_t i, n, c;
+	Py_ssize_t start, end, label;
+
+	const char *chrom;
+
+	PyObject *intervals = NULL;
+	PyObject *interval;
+
+	static char* keywords[] = {"intervals", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O", keywords, &intervals)) {
+		return NULL;
+	}
 
 	if (!obj) return NULL;
 
 	obj->ranges = cr_init();
-	obj->indexed = 0;
+	//obj->indexed = 0;
+
+	if (intervals) {
+		if (PySequence_Check(intervals)) {
+			n = PySequence_Size(intervals);
+
+			for (i = 0; i < n; ++i) {
+				interval = PySequence_GetItem(intervals, i);
+				c = PySequence_Size(interval);
+
+				if (c < 3) {
+					PyErr_SetString(PyExc_ValueError, "the interval must contain chrom name, start and end position");
+					return NULL;
+				}
+
+				chrom = PyUnicode_AsUTF8(PySequence_GetItem(interval, 0));
+				start = PyLong_AsSsize_t(PySequence_GetItem(interval, 1));
+				end = PyLong_AsSsize_t(PySequence_GetItem(interval, 2));
+
+				if (c > 3) {
+					label = PyLong_AsSsize_t(PySequence_GetItem(interval, 3));
+				} else {
+					label = -1;
+				}
+
+				cr_add(obj->ranges, chrom, start, end, label);
+			}
+
+			cr_index(obj->ranges);
+			//obj->indexed = 1;
+		} else {
+			PyErr_SetString(PyExc_TypeError, "the intervals must be list or tuple object");
+			return NULL;
+		}
+	}
 
 	return (PyObject *)obj;
 }
 
-static void pygrange_ranges_dealloc(pygrange_Ranges *self) {
+static void pygros_ranges_dealloc(pygros_Ranges *self) {
 	cr_destroy(self->ranges);
 }
 
-static PyObject *pygrange_ranges_repr(pygrange_Ranges *self) {
+static PyObject *pygros_ranges_repr(pygros_Ranges *self) {
 	if (self->ranges->n_r) {
-		return PyUnicode_FromFormat("<Ranges> contains %zd ranges from %d chroms",
-									self->ranges->n_r, self->ranges->n_ctg);
+		return PyUnicode_FromFormat("<Ranges> contains %zd ranges", self->ranges->n_r);
 	} else {
-		return PyUnicode_FromString("<Ranges> empty");
+		return PyUnicode_FromString("<Ranges> contains no ranges");
 	}
-	
 }
 
-static int64_t pygrange_ranges_length(pygrange_Ranges *self) {
+static Py_ssize_t pygros_ranges_length(pygros_Ranges *self) {
 	return self->ranges->n_r;
 }
 
-int pygrange_ranges_contains(pygrange_Ranges *self, PyObject *key) {
+int pygros_ranges_contains(pygros_Ranges *self, PyObject *key) {
 	const char *chrom = PyUnicode_AsUTF8(key);
-	return cr_get_ctg(self->ranges, chrom) == -1? 0 : 1;
+	return cr_get_ctg(self->ranges, chrom) == -1 ? 0 : 1;
 }
 
-static PyObject *pygrange_ranges_add(pygrange_Ranges *self, PyObject *args, PyObject *kwargs) {
+static PyObject *pygros_ranges_add(pygros_Ranges *self, PyObject *args, PyObject *kwargs) {
+	Py_ssize_t start;
+	Py_ssize_t end;
+	Py_ssize_t label = -1;
+
 	const char *chrom;
-	int start;
-	int end;
-	int label = -1;
 
 	static char* keywords[] = {"chrom", "start", "end", "label", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sii|i", keywords, &chrom, &start, &end, &label)) {
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "snn|n", keywords, &chrom, &start, &end, &label)) {
 		return NULL;
 	}
 
-	if (!self->indexed) {
-		cr_add(self->ranges, chrom, start, end, label);
-		Py_RETURN_NONE;
-	} else {
-		PyErr_SetString(PyExc_Exception, "Could not add interval after indexing");
-		return NULL;
-	}
-}
-
-static PyObject *pygrange_ranges_index(pygrange_Ranges *self) {
-	if (!self->indexed) {
-		cr_index(self->ranges);
-		self->indexed = 1;
-	}
-
+	cr_add(self->ranges, chrom, start, end, label);
 	Py_RETURN_NONE;
 }
 
-static PyObject *pygrange_ranges_overlap(pygrange_Ranges *self, PyObject *args, PyObject *kwargs) {
+static PyObject *pygros_ranges_index(pygros_Ranges *self) {
+	cr_index(self->ranges);
+	Py_RETURN_NONE;
+}
+
+static PyObject *pygros_ranges_overlap(pygros_Ranges *self, PyObject *args, PyObject *kwargs) {
+	Py_ssize_t start, end;
+	Py_ssize_t i, n, *b = 0, max_b = 0;
+	Py_ssize_t crs, cre, crl;
+	PyObject *op, *ops;
+	
 	const char *chrom;
-	int start;
-	int end;
 
 	static char* keywords[] = {"chrom", "start", "end", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sii", keywords, &chrom, &start, &end)) {
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "snn", keywords, &chrom, &start, &end)) {
 		return NULL;
 	}
 
-	Py_ssize_t i, n, *b = 0, max_b = 0;
 	n = cr_overlap(self->ranges, chrom, start, end, &b, &max_b);
 
-	PyObject *list = PyList_New(0);
+	ops = PyList_New(0);
 
 	for (i = 0; i < n; ++i) {
-		PyObject *it = Py_BuildValue("iii", cr_start(self->ranges, b[i]),
-										cr_end(self->ranges, b[i]),
-										cr_label(self->ranges, b[i]));
+		crs = cr_start(self->ranges, b[i]);
+		cre = cr_end(self->ranges, b[i]);
+		crl = cr_label(self->ranges, b[i]);
 
-		PyList_Append(list, it);
-		Py_DECREF(it);
+		op = Py_BuildValue("nnn", crs, cre, crl);
+		PyList_Append(ops, op);
+		Py_DECREF(op);
 	}
 
 	free(b);
-	return list;
+	return ops;
 }
 
-static PyObject *pygrange_ranges_contain(pygrange_Ranges *self, PyObject *args, PyObject *kwargs) {
+static PyObject *pygros_ranges_within(pygros_Ranges *self, PyObject *args, PyObject *kwargs) {
+	Py_ssize_t start, end;
+	Py_ssize_t i, n, *b = 0, max_b = 0;
+	Py_ssize_t crs, cre, crl;
+
 	const char *chrom;
-	int start;
-	int end;
+
+	PyObject *op, *ops;
 
 	static char* keywords[] = {"chrom", "start", "end", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sii", keywords, &chrom, &start, &end)) {
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "snn", keywords, &chrom, &start, &end)) {
 		return NULL;
 	}
-
-	Py_ssize_t i, n, *b = 0, max_b = 0;
+	
 	n = cr_contain(self->ranges, chrom, start, end, &b, &max_b);
 
-	PyObject *list = PyList_New(0);
+	ops = PyList_New(0);
 
 	for (i = 0; i < n; ++i) {
-		PyObject *it = Py_BuildValue("iii", cr_start(self->ranges, b[i]),
-										cr_end(self->ranges, b[i]),
-										cr_label(self->ranges, b[i]));
+		crs = cr_start(self->ranges, b[i]);
+		cre = cr_end(self->ranges, b[i]);
+		crl = cr_label(self->ranges, b[i]);
 
-		PyList_Append(list, it);
-		Py_DECREF(it);
+		op = Py_BuildValue("nnn", crs, cre, crl);
+		PyList_Append(ops, op);
+		Py_DECREF(op);
 	}
 
 	free(b);
-	return list;
+	return ops;
 }
 
-static PyObject *pygrange_ranges_locate(pygrange_Ranges *self, PyObject *args, PyObject *kwargs) {
+static PyObject *pygros_ranges_contain(pygros_Ranges *self, PyObject *args, PyObject *kwargs) {
+	Py_ssize_t start, end;
+	Py_ssize_t i, n, *b = 0, max_b = 0;
+	Py_ssize_t crs, cre, crl;
+	
 	const char *chrom;
-	int start;
-	int end;
+
+	PyObject *ops;
+	PyObject *op;
 
 	static char* keywords[] = {"chrom", "start", "end", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "sii", keywords, &chrom, &start, &end)) {
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "snn", keywords, &chrom, &start, &end)) {
 		return NULL;
 	}
+	
+	n = cr_overlap(self->ranges, chrom, start, end, &b, &max_b);
 
-	Py_ssize_t i, n, *b = 0, max_b = 0;
-	n = cr_locate(self->ranges, chrom, start, end, &b, &max_b);
-
-	PyObject *list = PyList_New(0);
+	ops = PyList_New(0);
 
 	for (i = 0; i < n; ++i) {
-		PyObject *it = Py_BuildValue("iii", cr_start(self->ranges, b[i]),
-										cr_end(self->ranges, b[i]),
-										cr_label(self->ranges, b[i]));
+		crs = cr_start(self->ranges, b[i]);
+		cre = cr_end(self->ranges, b[i]);
 
-		PyList_Append(list, it);
-		Py_DECREF(it);
+		if (crs <= start && cre >= end) {
+			crl = cr_label(self->ranges, b[i]);
+			op = Py_BuildValue("nnn", crs, cre, crl);
+			PyList_Append(ops, op);
+			Py_DECREF(op);
+		}
 	}
 
 	free(b);
-	return list;
+	return ops;
 }
 
-static PySequenceMethods pygrange_ranges_as_sequence = {
-	(lenfunc)pygrange_ranges_length, /*sq_length*/
-	0, /*sq_concat*/
-	0, /*sq_repeat*/
-	0, /*sq_item*/
-	0, /*sq_slice */
-	0, /*sq_ass_item*/
-	0, /*sq_ass_splice*/
-	(objobjproc)pygrange_ranges_contains, /*sq_contains*/
-	0, /*sq_inplace_concat*/
-	0, /*sq_inplace_repeat*/
+static PySequenceMethods pygros_ranges_as_sequence = {
+	.sq_length = (lenfunc)pygros_ranges_length,
+	.sq_contains = (objobjproc)pygros_ranges_contains,
 };
 
-static PyMethodDef pygrange_ranges_methods[] = {
-	{"add", (PyCFunction)pygrange_ranges_add, METH_VARARGS|METH_KEYWORDS, NULL},
-	{"index", (PyCFunction)pygrange_ranges_index, METH_NOARGS, NULL},
-	{"overlap", (PyCFunction)pygrange_ranges_overlap, METH_VARARGS|METH_KEYWORDS, NULL},
-	{"contain", (PyCFunction)pygrange_ranges_contain, METH_VARARGS|METH_KEYWORDS, NULL},
-	{"locate", (PyCFunction)pygrange_ranges_locate, METH_VARARGS|METH_KEYWORDS, NULL},
+static PyMethodDef pygros_ranges_methods[] = {
+	{"add", (PyCFunction)pygros_ranges_add, METH_VARARGS|METH_KEYWORDS, NULL},
+	{"index", (PyCFunction)pygros_ranges_index, METH_NOARGS, NULL},
+	{"overlap", (PyCFunction)pygros_ranges_overlap, METH_VARARGS|METH_KEYWORDS, NULL},
+	{"contain", (PyCFunction)pygros_ranges_contain, METH_VARARGS|METH_KEYWORDS, NULL},
+	{"within", (PyCFunction)pygros_ranges_within, METH_VARARGS|METH_KEYWORDS, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
-PyTypeObject pygrange_RangesType = {
+PyTypeObject pygros_RangesType = {
     PyVarObject_HEAD_INIT(NULL, 0)
-    "Ranges",                        /* tp_name */
-    sizeof(pygrange_Ranges),          /* tp_basicsize */
-    0,                              /* tp_itemsize */
-    (destructor)pygrange_ranges_dealloc,   /* tp_dealloc */
-    0,                              /* tp_print */
-    0,                              /* tp_getattr */
-    0,                              /* tp_setattr */
-    0,                              /* tp_reserved */
-    (reprfunc)pygrange_ranges_repr,                              /* tp_repr */
-    0,                              /* tp_as_number */
-    &pygrange_ranges_as_sequence,                   /* tp_as_sequence */
-    0,                   /* tp_as_mapping */
-    0,                              /* tp_hash */
-    0,                              /* tp_call */
-    0,                              /* tp_str */
-    0,                              /* tp_getattro */
-    0,                              /* tp_setattro */
-    0,                              /* tp_as_buffer */
-    Py_TPFLAGS_DEFAULT,             /* tp_flags */
-    "Ranges",                              /* tp_doc */
-    0,                              /* tp_traverse */
-    0,                              /* tp_clear */
-    0,                              /* tp_richcompare */
-    0,                              /* tp_weaklistoffset */
-    0,     /* tp_iter */
-    0,    /* tp_iternext */
-    pygrange_ranges_methods,          /* tp_methods */
-    0,          /* tp_members */
-    0,                               /* tp_getset */
-    0,                              /* tp_base */
-    0,                              /* tp_dict */
-    0,                              /* tp_descr_get */
-    0,                              /* tp_descr_set */
-    0,                              /* tp_dictoffset */
-    0,                              /* tp_init */
-    0,            /* tp_alloc */
-    pygrange_ranges_new,              /* tp_new */
+    .tp_name = "Ranges",
+    .tp_basicsize = sizeof(pygros_Ranges),
+    .tp_dealloc = (destructor)pygros_ranges_dealloc,
+    .tp_repr = (reprfunc)pygros_ranges_repr,
+    .tp_as_sequence = &pygros_ranges_as_sequence,
+    .tp_flags = Py_TPFLAGS_DEFAULT,
+    .tp_methods = pygros_ranges_methods,
+    .tp_new = pygros_ranges_new,
 };

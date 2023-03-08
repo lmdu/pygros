@@ -1,2 +1,2 @@
-# pygrange
-a python library for comparison of genomic ranges
+# pygrover
+a python library for finding genomic range overlaps based on [cgranges](https://github.com/lh3/cgranges).
