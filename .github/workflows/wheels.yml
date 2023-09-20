@@ -22,7 +22,7 @@ jobs:
         with:
           msystem: UCRT64
           update: true
-          install: mingw-w64-ucrt-x86_64-toolchain
+          install: mingw-w64-ucrt-x86_64-toolchain mingw-w64-cross-ucrt-toolchain
 
       - name: Setup QEMU
         if: runner.os == 'Linux'
