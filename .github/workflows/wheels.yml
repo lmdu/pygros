@@ -8,14 +8,17 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2019, ubuntu-20.04, macos-11]
+        os: [windows-2019]
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup MSYS2 on Windows
-        if: startsWith(runner.os, 'Windows')
-        uses: msys2/setup-msys2@v2
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - uses: msys2/setup-msys2@v2
+        if: ${{ matrix.os == 'windows-2019' }}
         with:
           msystem: MINGW64
           update: true
@@ -33,6 +36,8 @@ jobs:
           MSYSTEM: MINGW64
           MSYS2_PATH: D:/a/_temp/msys64
           CIBW_SKIP: pp*
+          CIBW_BUILD: cp310-win_amd64
+          CIBW_BUILD_FRONTEND: "build"
           CIBW_ARCHS_WINDOWS: auto64
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_ARCHS_MACOS: x86_64 arm64 universal2
