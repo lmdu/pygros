@@ -15,8 +15,7 @@ jobs:
 
       - name: Setup config
         if: matrix.os == 'windows-2019'
-        run: |
-          echo "[build]`ncompiler = mingw32" | Out-File -FilePath setup.cfg
+        run: echo "[build]`ncompiler = mingw32" | Out-File -FilePath setup.cfg
 
       - uses: actions/setup-python@v4
         with:
@@ -42,8 +41,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.16.0
         env:
           CIBW_SKIP: pp* cp36*
-          CIBW_ARCHS_LINUX: auto aarch64
-          CIBW_ARCHS_MACOS: x86_64 arm64 universal2
+          CIBW_ARCHS: auto64
 
       - name: Display wheels
         run: ls -l wheelhouse
