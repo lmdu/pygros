@@ -23,11 +23,13 @@ jobs:
           update: true
           install: mingw-w64-x86_64-gcc
 
+      - name: setup config
+        if: matrix.os == 'windows-2019'
+        run: echo "[build]`ncompiler=mingw32`n" | Out-File -FilePath setup.cfg
+
       - name: Set path
         if: matrix.os == 'windows-2019'
-        run: |
-          echo "$env:RUNNER_TEMP\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
-          echo "[build]`ncompiler=mingw32`n" | Out-File -FilePath setup.cfg
+        run: echo "$env:RUNNER_TEMP\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Setup QEMU
         if: runner.os == 'Linux'
