@@ -13,6 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Setup config
+        if: matrix.os == 'windows-2019'
+        run: |
+          echo "[build]`ncompiler = mingw32" | Out-File -FilePath setup.cfg
+
       - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
@@ -22,12 +27,6 @@ jobs:
         with:
           update: true
           install: mingw-w64-x86_64-gcc
-
-      - name: Setup config
-        if: matrix.os == 'windows-2019'
-        run: |
-          echo "[build]`ncompiler = mingw32" | Out-File -FilePath setup.cfg
-          dir
 
       - name: Set path
         if: matrix.os == 'windows-2019'
