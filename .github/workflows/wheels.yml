@@ -23,9 +23,11 @@ jobs:
           update: true
           install: mingw-w64-x86_64-gcc
 
-      - name: setup config
+      - name: Setup config
         if: matrix.os == 'windows-2019'
-        run: echo "[build]`ncompiler=mingw32`n" | Out-File -FilePath setup.cfg
+        run: |
+          echo "[build]`ncompiler = mingw32" | Out-File -FilePath setup.cfg
+          dir
 
       - name: Set path
         if: matrix.os == 'windows-2019'

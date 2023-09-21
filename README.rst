@@ -37,7 +37,7 @@ API reference
 
 	:return: Ranges object
 
-	.. py:method:: add(chrom, start, end, label=-1)
+	.. py:meth:: add(chrom, start, end, label=-1)
 
 		add genomic range into Ranges object
 
@@ -49,11 +49,11 @@ API reference
 
 		:param int label: an integer
 
-	.. py:method:: index()
+	.. py:meth:: index()
 
 		After add new genomic ranges, use this method to build index
 
-	.. py:method:: overlap(chrom, start, end)
+	.. py:meth:: overlap(chrom, start, end)
 
 		get genomic ranges that overlapped with your given range (start, end)
 
@@ -67,7 +67,7 @@ API reference
 
 		:rtype: list
 
-	.. py:method:: within(chrom, start, end)
+	.. py:meth:: within(chrom, start, end)
 
 		get genomic ranges within given range (start, end)
 
@@ -81,7 +81,7 @@ API reference
 
 		:rtype: list
 
-	.. py:method:: contain(chrom, start, end)
+	.. py:meth:: contain(chrom, start, end)
 
 		get genomic ranges that contained in given range (start, end)
 
