@@ -42,7 +42,7 @@ jobs:
         uses: pypa/cibuildwheel@v2.13.1
         env:
           CIBW_SKIP: pp*
-          CIBW_BUILD: cp310-win_amd64
+          CIBW_BUILD: cp39-win_amd64
           CIBW_ARCHS_LINUX: auto aarch64
           CIBW_ARCHS_MACOS: x86_64 arm64 universal2
 
