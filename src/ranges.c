@@ -216,13 +216,13 @@ static PyMethodDef pygros_ranges_methods[] = {
 };
 
 PyTypeObject pygros_RangesType = {
-    PyVarObject_HEAD_INIT(NULL, 0)
-    .tp_name = "Ranges",
-    .tp_basicsize = sizeof(pygros_Ranges),
-    .tp_dealloc = (destructor)pygros_ranges_dealloc,
-    .tp_repr = (reprfunc)pygros_ranges_repr,
-    .tp_as_sequence = &pygros_ranges_as_sequence,
-    .tp_flags = Py_TPFLAGS_DEFAULT,
-    .tp_methods = pygros_ranges_methods,
-    .tp_new = pygros_ranges_new,
+	PyVarObject_HEAD_INIT(NULL, 0)
+	.tp_name = "Ranges",
+	.tp_basicsize = sizeof(pygros_Ranges),
+	.tp_dealloc = (destructor)pygros_ranges_dealloc,
+	.tp_repr = (reprfunc)pygros_ranges_repr,
+	.tp_as_sequence = &pygros_ranges_as_sequence,
+	.tp_flags = Py_TPFLAGS_DEFAULT,
+	.tp_methods = pygros_ranges_methods,
+	.tp_new = pygros_ranges_new,
 };
