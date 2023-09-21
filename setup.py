@@ -45,7 +45,7 @@ setup(
 	long_description = long_description,
 	author = 'Lianming Du',
 	author_email = 'adullb@qq.com',
-	url = 'https://github.com/lmdu/pygrover',
+	url = 'https://github.com/lmdu/pygros',
 	license = 'MIT',
 	keywords = 'bioinformatics genome interval range overlap intersection',
 	classifiers = [
@@ -66,6 +66,5 @@ setup(
 			"Operating System :: POSIX :: Linux",
 			"Operating System :: Unix",
 			"Topic :: Scientific/Engineering :: Bio-Informatics"
-	],
-	test_suite = "tests"
+	]
 )

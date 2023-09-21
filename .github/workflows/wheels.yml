@@ -25,7 +25,9 @@ jobs:
 
       - name: Set path
         if: matrix.os == 'windows-2019'
-        run: echo "$env:RUNNER_TEMP\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        run: |
+          echo "$env:RUNNER_TEMP\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          echo "[build]`ncompiler=mingw32`n" | Out-File -FilePath setup.cfg
 
       - name: Setup QEMU
         if: runner.os == 'Linux'
