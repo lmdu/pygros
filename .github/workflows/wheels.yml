@@ -49,6 +49,7 @@ jobs:
       - name: Upload wheels to artifact
         uses: actions/upload-artifact@v4
         with:
+          name: artifact-${{ matrix.os }}
           path: ./wheelhouse/*.whl
 
   build_sdist:
@@ -70,6 +71,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
+          name: artifact-source
           path: dist/*.tar.gz
 
   upload_pypi:
