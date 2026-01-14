@@ -53,3 +53,5 @@ cgranges-0.1/test/Makefile
 cgranges-0.1/test/test1.bed
 cgranges-0.1/test/test2.bed
 pygros.cpython-36m-x86_64-linux-gnu.so
+.github/.DS_Store
+.DS_Store

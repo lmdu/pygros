@@ -8,39 +8,33 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2019, ubuntu-20.04, macos-12]
+        os: [windows-2022, ubuntu-22.04, macos-14, macos-14-large]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup config
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-2022'
         run: echo "[build]`ncompiler = mingw32" | Out-File -FilePath setup.cfg
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.10"
 
       - uses: msys2/setup-msys2@v2
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-2022'
         with:
           update: true
           install: mingw-w64-x86_64-gcc
 
       - name: Set path
-        if: matrix.os == 'windows-2019'
+        if: matrix.os == 'windows-2022'
         run: echo "$env:RUNNER_TEMP\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
-      - name: Setup QEMU
-        if: runner.os == 'Linux'
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: all
-
       - name: Build wheels
-        uses: pypa/cibuildwheel@v2.19.2
+        uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_SKIP: pp* cp36*
+          CIBW_SKIP: pp*
           CIBW_ARCHS: auto64
 
       - name: Display wheels
@@ -56,9 +50,9 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         name: Install Python
         with:
           python-version: "3.10"
@@ -79,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           pattern: artifact-*
           merge-multiple: true
