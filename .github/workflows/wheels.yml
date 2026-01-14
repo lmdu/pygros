@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-2022, ubuntu-22.04, macos-14]
+        os: [windows-2022, ubuntu-22.04, macos-15, macos-15-intel]
 
     steps:
       - uses: actions/checkout@v6
@@ -34,7 +34,7 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v3.3.1
         env:
-          CIBW_SKIP: pp*
+          CIBW_SKIP: pp* gp* cp314*
           CIBW_ARCHS: auto64
 
       - name: Display wheels
