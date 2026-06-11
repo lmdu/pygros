@@ -32,7 +32,7 @@ jobs:
         run: echo "$env:RUNNER_TEMP\msys64\mingw64\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.3.1
+        uses: pypa/cibuildwheel@v3.4.1
         env:
           CIBW_SKIP: pp* gp* cp314*
           CIBW_ARCHS: auto64
@@ -41,7 +41,7 @@ jobs:
         run: ls -l wheelhouse
 
       - name: Upload wheels to artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: artifact-${{ matrix.os }}
           path: ./wheelhouse/*.whl
@@ -63,7 +63,7 @@ jobs:
       - name: Display dist
         run: ls -l dist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: artifact-source
           path: dist/*.tar.gz
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
     steps:
-      - uses: actions/download-artifact@v5
+      - uses: actions/download-artifact@v8
         with:
           pattern: artifact-*
           merge-multiple: true

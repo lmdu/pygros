@@ -1,1 +1,1 @@
-#define PYGROS_VERSION "0.2.0"
+#define PYGROS_VERSION "0.3.0"
